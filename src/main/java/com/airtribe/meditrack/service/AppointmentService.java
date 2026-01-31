@@ -1,14 +1,17 @@
 package com.airtribe.meditrack.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import static java.util.stream.Collectors.toList;
+
 import com.airtribe.meditrack.constants.Constants;
 import com.airtribe.meditrack.entity.Appointment;
+import com.airtribe.meditrack.entity.Doctor;
+import com.airtribe.meditrack.entity.Patient;
 import com.airtribe.meditrack.exception.AppointmentNotFoundException;
 import com.airtribe.meditrack.exception.InvalidDataException;
 import com.airtribe.meditrack.util.DataStore;
 import com.airtribe.meditrack.util.IdGenerator;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service class for managing appointments.
@@ -44,13 +47,11 @@ public class AppointmentService {
      */
     public Appointment bookAppointment(String doctorId, String patientId, 
                                        LocalDateTime appointmentDateTime, String notes) throws InvalidDataException {
-        if (doctorService.getDoctorById(doctorId) == null) {
-            throw new InvalidDataException("Doctor not found");
-        }
-        if (patientService.getPatientById(patientId) == null) {
-            throw new InvalidDataException("Patient not found");
-        }
-        if (!doctorService.getDoctorById(doctorId).isAvailable()) {
+        Doctor doctor = doctorService.getDoctorById(doctorId)
+            .orElseThrow(() -> new InvalidDataException("Doctor not found"));
+        Patient patient = patientService.getPatientById(patientId)
+            .orElseThrow(() -> new InvalidDataException("Patient not found"));
+        if (!doctor.isAvailable()) {
             throw new InvalidDataException(Constants.DOCTOR_NOT_AVAILABLE);
         }
         if (appointmentDateTime.isBefore(LocalDateTime.now())) {
@@ -58,10 +59,17 @@ public class AppointmentService {
         }
         
         String appointmentId = IdGenerator.generateAppointmentId();
-        Appointment appointment = new Appointment(appointmentId, doctorId, patientId, 
-                                                 appointmentDateTime, Constants.APPOINTMENT_SCHEDULED, notes);
-        appointmentStore.add(appointment);
-        
+        Appointment appointment = new Appointment(appointmentId, doctorId, patientId,
+            appointmentDateTime, com.airtribe.meditrack.entity.AppointmentStatus.SCHEDULED, notes);
+        try {
+            appointmentStore.add(appointment);
+        } catch (RuntimeException e) {
+            throw new InvalidDataException("Failed to add appointment", e);
+        }
+        if (!appointmentStore.contains(appointment)) {
+            throw new InvalidDataException("Failed to add appointment to store");
+        }
+
         return appointment;
     }
     
@@ -87,7 +95,7 @@ public class AppointmentService {
     public List<Appointment> getAppointmentsByPatient(String patientId) {
         return appointmentStore.getAll().stream()
                 .filter(a -> a.getPatientId().equalsIgnoreCase(patientId))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
     
     /**
@@ -99,19 +107,22 @@ public class AppointmentService {
     public List<Appointment> getAppointmentsByDoctor(String doctorId) {
         return appointmentStore.getAll().stream()
                 .filter(a -> a.getDoctorId().equalsIgnoreCase(doctorId))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
     
     /**
      * Retrieves all appointments with a specific status.
      *
      * @param status the appointment status
-     * @return a list of appointments with that status
+     * @return a list of appointments with that status, or empty list if status is null
      */
-    public List<Appointment> getAppointmentsByStatus(String status) {
+    public List<Appointment> getAppointmentsByStatus(com.airtribe.meditrack.entity.AppointmentStatus status) {
+        if (status == null) {
+            return new java.util.ArrayList<>();
+        }
         return appointmentStore.getAll().stream()
-                .filter(a -> a.getStatus().equalsIgnoreCase(status))
-                .collect(Collectors.toList());
+                .filter(a -> a.getStatus() == status)
+                .collect(toList());
     }
     
     /**
@@ -125,7 +136,7 @@ public class AppointmentService {
         if (appointment == null) {
             throw new AppointmentNotFoundException(Constants.APPOINTMENT_NOT_FOUND);
         }
-        appointment.setStatus(Constants.APPOINTMENT_CANCELLED);
+        appointment.setStatus(com.airtribe.meditrack.entity.AppointmentStatus.CANCELLED);
     }
     
     /**
@@ -139,7 +150,7 @@ public class AppointmentService {
         if (appointment == null) {
             throw new AppointmentNotFoundException(Constants.APPOINTMENT_NOT_FOUND);
         }
-        appointment.setStatus(Constants.APPOINTMENT_COMPLETED);
+        appointment.setStatus(com.airtribe.meditrack.entity.AppointmentStatus.COMPLETED);
     }
     
     /**

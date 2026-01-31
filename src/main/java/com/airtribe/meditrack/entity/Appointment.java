@@ -13,7 +13,7 @@ public class Appointment implements Serializable {
     private String doctorId;
     private String patientId;
     private LocalDateTime appointmentDateTime;
-    private String status;
+    private AppointmentStatus status;
     private String notes;
     
     /**
@@ -27,7 +27,7 @@ public class Appointment implements Serializable {
      * @param notes any notes about the appointment
      */
     public Appointment(String appointmentId, String doctorId, String patientId,
-                       LocalDateTime appointmentDateTime, String status, String notes) {
+                       LocalDateTime appointmentDateTime, AppointmentStatus status, String notes) {
         this.appointmentId = appointmentId;
         this.doctorId = doctorId;
         this.patientId = patientId;
@@ -69,11 +69,11 @@ public class Appointment implements Serializable {
         this.appointmentDateTime = appointmentDateTime;
     }
     
-    public String getStatus() {
+    public AppointmentStatus getStatus() {
         return status;
     }
     
-    public void setStatus(String status) {
+    public void setStatus(AppointmentStatus status) {
         this.status = status;
     }
     
@@ -87,13 +87,15 @@ public class Appointment implements Serializable {
     
     @Override
     public String toString() {
-        return "Appointment{" +
-                "appointmentId='" + appointmentId + '\'' +
-                ", doctorId='" + doctorId + '\'' +
-                ", patientId='" + patientId + '\'' +
-                ", appointmentDateTime=" + appointmentDateTime +
-                ", status='" + status + '\'' +
-                ", notes='" + notes + '\'' +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Appointment{");
+        sb.append("appointmentId=\"").append(appointmentId).append('"');
+        sb.append(", doctorId=\"").append(doctorId).append('"');
+        sb.append(", patientId=\"").append(patientId).append('"');
+        sb.append(", appointmentDateTime=").append(appointmentDateTime);
+        sb.append(", status=\"").append(status != null ? status.name() : "null").append('"');
+        sb.append(", notes=\"").append(notes).append('"');
+        sb.append('}');
+        return sb.toString();
     }
 }

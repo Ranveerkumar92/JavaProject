@@ -53,8 +53,7 @@ public class Main {
                     System.out.println("Invalid choice. Please try again.");
             }
         }
-        
-        scanner.close();
+ 
     }
     
     private static void displayWelcome() {
@@ -217,7 +216,7 @@ public class Main {
     private static void searchDoctorById() {
         System.out.print("Enter doctor ID: ");
         String id = scanner.nextLine();
-        Doctor doctor = doctorService.getDoctorById(id);
+        Doctor doctor = doctorService.getDoctorById(id).orElse(null);
         if (doctor != null) {
             System.out.println("\n" + doctor);
         } else {
@@ -228,7 +227,7 @@ public class Main {
     private static void updateDoctorAvailability() {
         System.out.print("Enter doctor ID: ");
         String id = scanner.nextLine();
-        Doctor doctor = doctorService.getDoctorById(id);
+        Doctor doctor = doctorService.getDoctorById(id).orElse(null);
         if (doctor != null) {
             System.out.print("Set available (true/false): ");
             boolean available = Boolean.parseBoolean(scanner.nextLine());
@@ -275,7 +274,7 @@ public class Main {
     private static void searchPatientById() {
         System.out.print("Enter patient ID: ");
         String id = scanner.nextLine();
-        Patient patient = patientService.getPatientById(id);
+        Patient patient = patientService.getPatientById(id).orElse(null);
         if (patient != null) {
             System.out.println("\n" + patient);
         } else {
@@ -286,11 +285,9 @@ public class Main {
     private static void updateMedicalHistory() {
         System.out.print("Enter patient ID: ");
         String id = scanner.nextLine();
-        Patient patient = patientService.getPatientById(id);
-        if (patient != null) {
-            System.out.print("Enter new medical history: ");
-            String history = scanner.nextLine();
-            patientService.updateMedicalHistory(id, history);
+        System.out.print("Enter new medical history: ");
+        String history = scanner.nextLine();
+        if (patientService.updateMedicalHistory(id, history)) {
             System.out.println("✓ Medical history updated.");
         } else {
             System.out.println("Patient not found.");
@@ -308,9 +305,15 @@ public class Main {
             System.out.print("Enter notes: ");
             String notes = scanner.nextLine();
             
-            LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, 
-                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            LocalDateTime dateTime;
+            try {
+                dateTime = LocalDateTime.parse(dateTimeStr, formatter);
+            } catch (java.time.format.DateTimeParseException e) {
+                System.out.println("✗ Error: Invalid date/time format. Please use: yyyy-MM-dd HH:mm:ss");
+                return;
+            }
+
             Appointment appointment = appointmentService.bookAppointment(doctorId, patientId, dateTime, notes);
             System.out.println("\n✓ Appointment booked successfully!");
             System.out.println("Appointment ID: " + appointment.getAppointmentId());

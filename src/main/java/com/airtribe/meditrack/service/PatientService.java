@@ -6,7 +6,10 @@ import com.airtribe.meditrack.util.DataStore;
 import com.airtribe.meditrack.util.IdGenerator;
 import com.airtribe.meditrack.util.Validator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Service class for managing patients.
@@ -20,7 +23,7 @@ public class PatientService {
      * Constructs a PatientService with an empty data store.
      */
     public PatientService() {
-        this.patientStore = new DataStore<>();
+        this.patientStore = new DataStore<Patient>();
     }
     
     /**
@@ -49,26 +52,24 @@ public class PatientService {
      * Retrieves a patient by ID.
      *
      * @param patientId the patient's ID
-     * @return the patient if found, null otherwise
+     * @return an Optional containing the patient if found, empty otherwise
      */
-    public Patient getPatientById(String patientId) {
+    public Optional<Patient> getPatientById(String patientId) {
         return patientStore.getAll().stream()
                 .filter(p -> p.matchesId(patientId))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
     
     /**
      * Retrieves a patient by name.
      *
      * @param name the patient's name
-     * @return the patient if found, null otherwise
+     * @return an Optional containing the patient if found, empty otherwise
      */
-    public Patient getPatientByName(String name) {
+    public Optional<Patient> getPatientByName(String name) {
         return patientStore.getAll().stream()
                 .filter(p -> p.matchesName(name))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
     
     /**
@@ -81,7 +82,7 @@ public class PatientService {
     public List<Patient> getPatientsByAgeRange(int minAge, int maxAge) {
         return patientStore.getAll().stream()
                 .filter(p -> p.getAge() >= minAge && p.getAge() <= maxAge)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
     
     /**
@@ -90,15 +91,19 @@ public class PatientService {
      * @param patientId the patient's ID
      * @param email the new email
      * @param phoneNumber the new phone number
+     * @return true if update was successful, false if patient not found
      * @throws InvalidDataException if any field is invalid
      */
-    public void updatePatient(String patientId, String email, String phoneNumber) throws InvalidDataException {
-        Patient patient = getPatientById(patientId);
-        if (patient != null) {
-            Validator.validatePatient(patient.getName(), email, phoneNumber, patient.getAge());
-            patient.setEmail(email);
-            patient.setPhoneNumber(phoneNumber);
+    public boolean updatePatient(String patientId, String email, String phoneNumber) throws InvalidDataException {
+        var optionalPatient = getPatientById(patientId);
+        if (optionalPatient.isEmpty()) {
+            return false;
         }
+        Patient patient = optionalPatient.get();
+        Validator.validatePatient(patient.getName(), email, phoneNumber, patient.getAge());
+        patient.setEmail(email);
+        patient.setPhoneNumber(phoneNumber);
+        return true;
     }
     
     /**
@@ -106,12 +111,13 @@ public class PatientService {
      *
      * @param patientId the patient's ID
      * @param medicalHistory the new medical history
+     * @return true if update was successful, false if patient not found
      */
-    public void updateMedicalHistory(String patientId, String medicalHistory) {
-        Patient patient = getPatientById(patientId);
-        if (patient != null) {
+    public boolean updateMedicalHistory(String patientId, String medicalHistory) {
+        return getPatientById(patientId).map(patient -> {
             patient.setMedicalHistory(medicalHistory);
-        }
+            return true;
+        }).orElse(false);
     }
     
     /**
@@ -121,8 +127,7 @@ public class PatientService {
      * @return true if removed, false otherwise
      */
     public boolean removePatient(String patientId) {
-        Patient patient = getPatientById(patientId);
-        return patient != null && patientStore.remove(patient);
+        return getPatientById(patientId).map(patientStore::remove).orElse(false);
     }
     
     /**

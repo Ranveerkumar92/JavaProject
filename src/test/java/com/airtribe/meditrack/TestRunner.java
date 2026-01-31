@@ -66,8 +66,8 @@ public class TestRunner {
             assertTrue("Second doctor registration successful", doc2 != null);
             
             // Test retrieval
-            assertTrue("Get doctor by ID", doctorService.getDoctorById(doc1.getId()) != null);
-            assertTrue("Get doctor by name", doctorService.getDoctorByName("Dr. John Smith") != null);
+            assertTrue("Get doctor by ID", doctorService.getDoctorById(doc1.getId()).isPresent());
+            assertTrue("Get doctor by name", doctorService.getDoctorByName("Dr. John Smith").isPresent());
             
             // Test specialty filter
             assertTrue("Filter by specialty", doctorService.getDoctorsBySpecialty("CARDIOLOGY").size() == 1);
@@ -100,16 +100,16 @@ public class TestRunner {
             assertTrue("Second patient registration successful", patient2 != null);
             
             // Test retrieval
-            assertTrue("Get patient by ID", patientService.getPatientById(patient1.getId()) != null);
-            assertTrue("Get patient by name", patientService.getPatientByName("John Doe") != null);
+            assertTrue("Get patient by ID", patientService.getPatientById(patient1.getId()).isPresent());
+            assertTrue("Get patient by name", patientService.getPatientByName("John Doe").isPresent());
             
             // Test age range filter
             assertTrue("Filter by age range", patientService.getPatientsByAgeRange(30, 40).size() == 1);
             
             // Test update
-            patientService.updateMedicalHistory(patient1.getId(), "Diabetes, No allergies");
-            assertTrue("Medical history updated", 
-                      patientService.getPatientById(patient1.getId()).getMedicalHistory().contains("Diabetes"));
+            assertTrue("Medical history updated", patientService.updateMedicalHistory(patient1.getId(), "Diabetes, No allergies"));
+            assertTrue("Medical history contains expected text", 
+                      patientService.getPatientById(patient1.getId()).map(p -> p.getMedicalHistory().contains("Diabetes")).orElse(false));
             
         } catch (InvalidDataException e) {
             fail("Patient registration failed: " + e.getMessage());
@@ -146,7 +146,7 @@ public class TestRunner {
             // Test status operations
             appointmentService.completeAppointment(appointment.getAppointmentId());
             Appointment completed = appointmentService.getAppointmentById(appointment.getAppointmentId());
-            assertTrue("Appointment marked as completed", completed.getStatus().equals("COMPLETED"));
+            assertTrue("Appointment marked as completed", completed.getStatus() == AppointmentStatus.COMPLETED);
             
             // Test invalid operations
             try {

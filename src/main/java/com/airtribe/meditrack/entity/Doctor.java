@@ -10,7 +10,7 @@ public class Doctor extends Person implements Searchable, Cloneable {
     private static final long serialVersionUID = 1L;
     
     private String specialty;
-    private boolean available;
+    private DoctorAvailability availability;
     private String licenseNumber;
     
     /**
@@ -25,9 +25,25 @@ public class Doctor extends Person implements Searchable, Cloneable {
      */
     public Doctor(String id, String name, String email, String phoneNumber, 
                   String specialty, String licenseNumber) {
+        this(id, name, email, phoneNumber, specialty, licenseNumber, DoctorAvailability.AVAILABLE);
+    }
+
+    /**
+     * Constructs a Doctor with explicit availability.
+     *
+     * @param id the unique identifier
+     * @param name the doctor's name
+     * @param email the doctor's email
+     * @param phoneNumber the doctor's phone number
+     * @param specialty the doctor's specialty
+     * @param licenseNumber the doctor's license number
+     * @param availability initial availability state
+     */
+    public Doctor(String id, String name, String email, String phoneNumber,
+                  String specialty, String licenseNumber, DoctorAvailability availability) {
         super(id, name, email, phoneNumber);
         this.specialty = specialty;
-        this.available = true;
+        this.availability = availability == null ? DoctorAvailability.NOT_AVAILABLE : availability;
         this.licenseNumber = licenseNumber;
     }
     
@@ -41,11 +57,20 @@ public class Doctor extends Person implements Searchable, Cloneable {
     }
     
     public boolean isAvailable() {
-        return available;
+        return this.availability == DoctorAvailability.AVAILABLE;
     }
-    
+
+    public DoctorAvailability getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(DoctorAvailability availability) {
+        this.availability = availability;
+    }
+
+    // Backwards-compatible setter for boolean flag
     public void setAvailable(boolean available) {
-        this.available = available;
+        this.availability = available ? DoctorAvailability.AVAILABLE : DoctorAvailability.NOT_AVAILABLE;
     }
     
     public String getLicenseNumber() {
@@ -58,11 +83,13 @@ public class Doctor extends Person implements Searchable, Cloneable {
     
     @Override
     public boolean matchesId(String id) {
+        if (id == null || this.id == null) return false;
         return this.id.equalsIgnoreCase(id);
     }
     
     @Override
     public boolean matchesName(String name) {
+        if (name == null || this.name == null) return false;
         return this.name.equalsIgnoreCase(name);
     }
     
@@ -73,14 +100,16 @@ public class Doctor extends Person implements Searchable, Cloneable {
     
     @Override
     public String toString() {
-        return "Doctor{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", specialty='" + specialty + '\'' +
-                ", available=" + available +
-                ", licenseNumber='" + licenseNumber + '\'' +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Doctor{");
+        sb.append("id=\"").append(id).append('"');
+        sb.append(", name=\"").append(name).append('"');
+        sb.append(", email=\"").append(email).append('"');
+        sb.append(", phoneNumber=\"").append(phoneNumber).append('"');
+        sb.append(", specialty=\"").append(specialty).append('"');
+        sb.append(", availability=\"").append(availability != null ? availability.name() : "null").append('"');
+        sb.append(", licenseNumber=\"").append(licenseNumber).append('"');
+        sb.append('}');
+        return sb.toString();
     }
 }

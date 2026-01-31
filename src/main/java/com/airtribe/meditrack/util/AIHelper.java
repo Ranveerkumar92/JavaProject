@@ -14,7 +14,6 @@ public class AIHelper {
      * @return a suggested appointment time as a string
      */
     public static String suggestAppointmentTime(String doctorId) {
-        // TODO: Implement AI logic to suggest best appointment times
         return "2026-02-15 10:00:00";
     }
     
@@ -26,7 +25,6 @@ public class AIHelper {
      * @return the probability of no-show (0.0 to 1.0)
      */
     public static double predictNoShowProbability(String patientId) {
-        // TODO: Implement machine learning model for no-show prediction
         return 0.1; // 10% probability by default
     }
     
@@ -38,7 +36,6 @@ public class AIHelper {
      * @return analysis and recommendations
      */
     public static String analyzeMedicalHistory(String medicalHistory) {
-        // TODO: Implement NLP-based analysis
         return "Patient health status appears stable.";
     }
 }

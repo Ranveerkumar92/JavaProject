@@ -1,8 +1,9 @@
 package com.airtribe.meditrack.entity;
 
-import com.airtribe.meditrack.interface_impl.Payable;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import com.airtribe.meditrack.interface_impl.Payable;
 
 /**
  * Represents a Bill for services rendered to a patient.
@@ -33,6 +34,9 @@ public class Bill implements Payable, Serializable {
      */
     public Bill(String billId, String patientId, String appointmentId,
                 double consultationFee, double labCharges, double otherCharges) {
+        if (consultationFee < 0 || labCharges < 0 || otherCharges < 0) {
+            throw new IllegalArgumentException("Fees and charges cannot be negative");
+        }
         this.billId = billId;
         this.patientId = patientId;
         this.appointmentId = appointmentId;
@@ -75,7 +79,11 @@ public class Bill implements Payable, Serializable {
     }
     
     public void setConsultationFee(double consultationFee) {
+        if (consultationFee < 0) {
+            throw new IllegalArgumentException("Consultation fee cannot be negative");
+        }
         this.consultationFee = consultationFee;
+        recalculateTotalAmount();
     }
     
     public double getLabCharges() {
@@ -83,7 +91,11 @@ public class Bill implements Payable, Serializable {
     }
     
     public void setLabCharges(double labCharges) {
+        if (labCharges < 0) {
+            throw new IllegalArgumentException("Lab charges cannot be negative");
+        }
         this.labCharges = labCharges;
+        recalculateTotalAmount();
     }
     
     public double getOtherCharges() {
@@ -91,15 +103,19 @@ public class Bill implements Payable, Serializable {
     }
     
     public void setOtherCharges(double otherCharges) {
+        if (otherCharges < 0) {
+            throw new IllegalArgumentException("Other charges cannot be negative");
+        }
         this.otherCharges = otherCharges;
+        recalculateTotalAmount();
     }
     
     public double getTotalAmount() {
         return totalAmount;
     }
     
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
+    private void recalculateTotalAmount() {
+        this.totalAmount = this.consultationFee + this.labCharges + this.otherCharges;
     }
     
     public LocalDateTime getBillDate() {
@@ -136,17 +152,19 @@ public class Bill implements Payable, Serializable {
     
     @Override
     public String toString() {
-        return "Bill{" +
-                "billId='" + billId + '\'' +
-                ", patientId='" + patientId + '\'' +
-                ", appointmentId='" + appointmentId + '\'' +
-                ", consultationFee=" + consultationFee +
-                ", labCharges=" + labCharges +
-                ", otherCharges=" + otherCharges +
-                ", totalAmount=" + totalAmount +
-                ", paid=" + paid +
-                ", billDate=" + billDate +
-                ", paidDate=" + paidDate +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Bill{");
+        sb.append("billId=\"").append(billId).append('"');
+        sb.append(", patientId=\"").append(patientId).append('"');
+        sb.append(", appointmentId=\"").append(appointmentId).append('"');
+        sb.append(", consultationFee=").append(consultationFee);
+        sb.append(", labCharges=").append(labCharges);
+        sb.append(", otherCharges=").append(otherCharges);
+        sb.append(", totalAmount=").append(totalAmount);
+        sb.append(", paid=").append(paid);
+        sb.append(", billDate=").append(billDate);
+        sb.append(", paidDate=").append(paidDate);
+        sb.append('}');
+        return sb.toString();
     }
 }

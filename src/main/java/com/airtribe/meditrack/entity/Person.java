@@ -35,6 +35,9 @@ public abstract class Person implements Serializable {
     }
     
     public void setId(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("id cannot be null or empty");
+        }
         this.id = id;
     }
     
@@ -43,6 +46,9 @@ public abstract class Person implements Serializable {
     }
     
     public void setName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("name cannot be null or empty");
+        }
         this.name = name;
     }
     
@@ -51,6 +57,9 @@ public abstract class Person implements Serializable {
     }
     
     public void setEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("email cannot be null or empty");
+        }
         this.email = email;
     }
     
@@ -59,16 +68,35 @@ public abstract class Person implements Serializable {
     }
     
     public void setPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("phoneNumber cannot be null or empty");
+        }
         this.phoneNumber = phoneNumber;
+    }
+
+    /**
+     * Null-safe check whether this person's id matches the given id.
+     */
+    public boolean matchesId(String id) {
+        return this.id != null && id != null && this.id.equals(id);
+    }
+
+    /**
+     * Null-safe case-insensitive name comparison.
+     */
+    public boolean matchesName(String name) {
+        return this.name != null && name != null && this.name.equalsIgnoreCase(name);
     }
     
     @Override
     public String toString() {
-        return "Person{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Person{");
+        sb.append("id=\"").append(id).append('"');
+        sb.append(", name=\"").append(name).append('"');
+        sb.append(", email=\"").append(email).append('"');
+        sb.append(", phoneNumber=\"").append(phoneNumber).append('"');
+        sb.append('}');
+        return sb.toString();
     }
 }

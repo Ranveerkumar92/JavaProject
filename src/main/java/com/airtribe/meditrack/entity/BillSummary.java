@@ -2,6 +2,7 @@ package com.airtribe.meditrack.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * Immutable class representing a summary of a Bill.
@@ -64,14 +65,35 @@ public final class BillSummary implements Serializable {
     
     @Override
     public String toString() {
-        return "BillSummary{" +
-                "billId='" + billId + '\'' +
-                ", patientId='" + patientId + '\'' +
-                ", appointmentId='" + appointmentId + '\'' +
-                ", totalAmount=" + totalAmount +
-                ", paid=" + paid +
-                ", billDate=" + billDate +
-                ", paidDate=" + paidDate +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("BillSummary{");
+        sb.append("billId=\"").append(billId).append('"');
+        sb.append(", patientId=\"").append(patientId).append('"');
+        sb.append(", appointmentId=\"").append(appointmentId).append('"');
+        sb.append(", totalAmount=").append(totalAmount);
+        sb.append(", paid=").append(paid);
+        sb.append(", billDate=").append(billDate);
+        sb.append(", paidDate=").append(paidDate);
+        sb.append('}');
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BillSummary)) return false;
+        BillSummary that = (BillSummary) o;
+        return Double.compare(that.totalAmount, totalAmount) == 0 &&
+                paid == that.paid &&
+                Objects.equals(billId, that.billId) &&
+                Objects.equals(patientId, that.patientId) &&
+                Objects.equals(appointmentId, that.appointmentId) &&
+                Objects.equals(billDate, that.billDate) &&
+                Objects.equals(paidDate, that.paidDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(billId, patientId, appointmentId, totalAmount, paid, billDate, paidDate);
     }
 }

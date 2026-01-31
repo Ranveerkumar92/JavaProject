@@ -6,7 +6,10 @@ import com.airtribe.meditrack.util.DataStore;
 import com.airtribe.meditrack.util.IdGenerator;
 import com.airtribe.meditrack.util.Validator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Service class for managing doctors.
@@ -20,7 +23,7 @@ public class DoctorService {
      * Constructs a DoctorService with an empty data store.
      */
     public DoctorService() {
-        this.doctorStore = new DataStore<>();
+        this.doctorStore = new DataStore<Doctor>();
     }
     
     /**
@@ -36,12 +39,20 @@ public class DoctorService {
      */
     public Doctor registerDoctor(String name, String email, String phoneNumber, 
                                  String specialty, String licenseNumber) throws InvalidDataException {
+        return registerDoctor(name, email, phoneNumber, specialty, licenseNumber, com.airtribe.meditrack.entity.DoctorAvailability.AVAILABLE);
+    }
+
+    /**
+     * Register a doctor specifying initial availability.
+     */
+    public Doctor registerDoctor(String name, String email, String phoneNumber,
+                                 String specialty, String licenseNumber, com.airtribe.meditrack.entity.DoctorAvailability availability) throws InvalidDataException {
         Validator.validateDoctor(name, email, phoneNumber);
-        
+
         String doctorId = IdGenerator.generateDoctorId();
-        Doctor doctor = new Doctor(doctorId, name, email, phoneNumber, specialty, licenseNumber);
+        Doctor doctor = new Doctor(doctorId, name, email, phoneNumber, specialty, licenseNumber, availability);
         doctorStore.add(doctor);
-        
+
         return doctor;
     }
     
@@ -49,26 +60,24 @@ public class DoctorService {
      * Retrieves a doctor by ID.
      *
      * @param doctorId the doctor's ID
-     * @return the doctor if found, null otherwise
+     * @return an Optional containing the doctor if found, empty otherwise
      */
-    public Doctor getDoctorById(String doctorId) {
+    public Optional<Doctor> getDoctorById(String doctorId) {
         return doctorStore.getAll().stream()
                 .filter(d -> d.matchesId(doctorId))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
     
     /**
      * Retrieves a doctor by name.
      *
      * @param name the doctor's name
-     * @return the doctor if found, null otherwise
+     * @return an Optional containing the doctor if found, empty otherwise
      */
-    public Doctor getDoctorByName(String name) {
+    public Optional<Doctor> getDoctorByName(String name) {
         return doctorStore.getAll().stream()
                 .filter(d -> d.matchesName(name))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
     
     /**
@@ -80,7 +89,7 @@ public class DoctorService {
     public List<Doctor> getDoctorsBySpecialty(String specialty) {
         return doctorStore.getAll().stream()
                 .filter(d -> d.getSpecialty().equalsIgnoreCase(specialty))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
     
     /**
@@ -91,7 +100,7 @@ public class DoctorService {
     public List<Doctor> getAvailableDoctors() {
         return doctorStore.getAll().stream()
                 .filter(Doctor::isAvailable)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
     
     /**
@@ -103,12 +112,15 @@ public class DoctorService {
      * @throws InvalidDataException if any field is invalid
      */
     public void updateDoctor(String doctorId, String email, String phoneNumber) throws InvalidDataException {
-        Doctor doctor = getDoctorById(doctorId);
-        if (doctor != null) {
-            Validator.validateDoctor(doctor.getName(), email, phoneNumber);
-            doctor.setEmail(email);
-            doctor.setPhoneNumber(phoneNumber);
-        }
+        getDoctorById(doctorId).ifPresent(doctor -> {
+            try {
+                Validator.validateDoctor(doctor.getName(), email, phoneNumber);
+                doctor.setEmail(email);
+                doctor.setPhoneNumber(phoneNumber);
+            } catch (InvalidDataException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
     
     /**
@@ -118,10 +130,17 @@ public class DoctorService {
      * @param available the availability status
      */
     public void setDoctorAvailability(String doctorId, boolean available) {
-        Doctor doctor = getDoctorById(doctorId);
-        if (doctor != null) {
-            doctor.setAvailable(available);
-        }
+        getDoctorById(doctorId).ifPresent(doctor -> doctor.setAvailable(available));
+    }
+
+    /**
+     * Sets a doctor's availability using the enum.
+     *
+     * @param doctorId the doctor's ID
+     * @param availability the availability state
+     */
+    public void setDoctorAvailability(String doctorId, com.airtribe.meditrack.entity.DoctorAvailability availability) {
+        getDoctorById(doctorId).ifPresent(doctor -> doctor.setAvailability(availability));
     }
     
     /**
@@ -131,8 +150,7 @@ public class DoctorService {
      * @return true if removed, false otherwise
      */
     public boolean removeDoctor(String doctorId) {
-        Doctor doctor = getDoctorById(doctorId);
-        return doctor != null && doctorStore.remove(doctor);
+        return getDoctorById(doctorId).map(doctorStore::remove).orElse(false);
     }
     
     /**

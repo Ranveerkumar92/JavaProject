@@ -191,8 +191,8 @@ public class Patient extends Person implements Searchable {
 Subclasses can substitute superclasses:
 
 ```java
-Person person = new Doctor(...);        // Valid - Doctor is a Person
-person = new Patient(...);              // Valid - Patient is a Person
+Person person = new Doctor("DOC1", "Dr. Jane", "jane@example.com", "9876543210", "CARDIOLOGY", "LIC001", DoctorAvailability.AVAILABLE);        // Valid - Doctor is a Person
+person = new Patient("PAT1", "John Doe", "john@example.com", "8765432109", 35, "No known allergies");              // Valid - Patient is a Person
 
 // Both can be used interchangeably where Person is expected
 ```
@@ -439,7 +439,8 @@ public Doctor registerDoctor(...) throws InvalidDataException {
     
     // Only proceed if validation passes
     String doctorId = IdGenerator.generateDoctorId();
-    Doctor doctor = new Doctor(...);
+    // Example: create doctor with explicit availability
+    Doctor doctor = new Doctor(doctorId, "Dr. Example", "doc@example.com", "9876543210", "GENERAL", "LIC123", DoctorAvailability.AVAILABLE);
     doctorStore.add(doctor);
     return doctor;
 }

@@ -36,4 +36,8 @@ public class Constants {
     public static final String PATIENTS_CSV = "data/patients.csv";
     public static final String APPOINTMENTS_CSV = "data/appointments.csv";
     public static final String BILLS_CSV = "data/bills.csv";
+
+
+    // Other constants
+    public static final String PATIENT_HEALTH_STATUS = "Patient health status appears stable.";
 }

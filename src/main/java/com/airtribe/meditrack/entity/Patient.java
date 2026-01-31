@@ -48,11 +48,13 @@ public class Patient extends Person implements Searchable, Cloneable {
     
     @Override
     public boolean matchesId(String id) {
+        if (id == null || this.id == null) return false;
         return this.id.equalsIgnoreCase(id);
     }
     
     @Override
     public boolean matchesName(String name) {
+        if (name == null || this.name == null) return false;
         return this.name.equalsIgnoreCase(name);
     }
     
@@ -63,13 +65,15 @@ public class Patient extends Person implements Searchable, Cloneable {
     
     @Override
     public String toString() {
-        return "Patient{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", age=" + age +
-                ", medicalHistory='" + medicalHistory + '\'' +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Patient{");
+        sb.append("id=\"").append(id).append('"');
+        sb.append(", name=\"").append(name).append('"');
+        sb.append(", email=\"").append(email).append('"');
+        sb.append(", phoneNumber=\"").append(phoneNumber).append('"');
+        sb.append(", age=").append(age);
+        sb.append(", medicalHistory=\"").append(medicalHistory).append('"');
+        sb.append('}');
+        return sb.toString();
     }
 }
